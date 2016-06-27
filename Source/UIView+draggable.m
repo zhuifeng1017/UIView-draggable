@@ -173,6 +173,7 @@
 - (void)enableDragging {
     self.panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
 //    self.panGesture.maximumNumberOfTouches = 1;
+//    self.panGesture.minimumNumberOfTouches = 1;
     self.panGesture.minimumNumberOfTouches = 1;
     self.panGesture.cancelsTouchesInView = NO;
     self.handle = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
