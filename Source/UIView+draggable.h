@@ -53,17 +53,17 @@
 /**
  Notifies when dragging started. Passes a reference to the view.
  */
-@property (nonatomic, copy) void (^draggingStartedBlock)(UIView *);
+@property (nonatomic, copy) void (^draggingStartedBlock)(CGPoint);
 
 /**
  Notifies when dragging has moved. Passes a reference to the view.
  */
-@property (nonatomic, copy) void (^draggingMovedBlock)(UIView *);
+@property (nonatomic, copy) void (^draggingMovedBlock)(CGPoint);
 
 /**
  Notifies when dragging ended. Passes a reference to the view.
  */
-@property (nonatomic, copy) void (^draggingEndedBlock)(UIView *);
+@property (nonatomic, copy) void (^draggingEndedBlock)(CGPoint);
 
 /** Enables the dragging
  *

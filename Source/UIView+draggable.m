@@ -67,27 +67,27 @@
     return (moveAlongX) ? [moveAlongX boolValue] : YES;
 }
 
-- (void)setDraggingStartedBlock:(void (^)(UIView *))draggingStartedBlock {
+- (void)setDraggingStartedBlock:(void (^)(CGPoint))draggingStartedBlock {
     objc_setAssociatedObject(self, @selector(draggingStartedBlock), draggingStartedBlock, OBJC_ASSOCIATION_RETAIN);
 }
 
-- (void (^)(UIView *))draggingStartedBlock {
+- (void (^)(CGPoint))draggingStartedBlock {
     return objc_getAssociatedObject(self, @selector(draggingStartedBlock));
 }
 
-- (void)setDraggingMovedBlock:(void (^)(UIView *))draggingMovedBlock {
+- (void)setDraggingMovedBlock:(void (^)(CGPoint))draggingMovedBlock {
     objc_setAssociatedObject(self, @selector(draggingMovedBlock), draggingMovedBlock, OBJC_ASSOCIATION_RETAIN);
 }
 
-- (void (^)(UIView *))draggingMovedBlock {
+- (void (^)(CGPoint))draggingMovedBlock {
     return objc_getAssociatedObject(self, @selector(draggingMovedBlock));
 }
 
-- (void)setDraggingEndedBlock:(void (^)(UIView *))draggingEndedBlock {
+- (void)setDraggingEndedBlock:(void (^)(CGPoint))draggingEndedBlock {
     objc_setAssociatedObject(self, @selector(draggingEndedBlock), draggingEndedBlock, OBJC_ASSOCIATION_RETAIN);
 }
 
-- (void (^)(UIView *))draggingEndedBlock {
+- (void (^)(CGPoint))draggingEndedBlock {
     return objc_getAssociatedObject(self, @selector(draggingEndedBlock));
 }
 
@@ -101,18 +101,8 @@
         return;
     }
 
-    [self adjustAnchorPointForGestureRecognizer:sender];
-
     if (sender.state == UIGestureRecognizerStateBegan && self.draggingStartedBlock) {
-        self.draggingStartedBlock(self);
-    }
-
-    if (sender.state == UIGestureRecognizerStateChanged && self.draggingMovedBlock) {
-        self.draggingMovedBlock(self);
-    }
-
-    if (sender.state == UIGestureRecognizerStateEnded && self.draggingEndedBlock) {
-        self.draggingEndedBlock(self);
+        self.draggingStartedBlock(self.frame.origin);
     }
 
     CGPoint translation = [sender translationInView:[self superview]];
@@ -128,12 +118,14 @@
     CGFloat cagingAreaRightSide = cagingAreaOriginX + CGRectGetWidth(cagingArea);
     CGFloat cagingAreaBottomSide = cagingAreaOriginY + CGRectGetHeight(cagingArea);
 
+    BOOL bMove = YES;
     if (!CGRectEqualToRect(cagingArea, CGRectZero)) {
         // Check to make sure the view is still horizontaly within the caging area
         if (newXOrigin <= cagingAreaOriginX ||
             newXOrigin + CGRectGetWidth(self.frame) >= cagingAreaRightSide) {
             // Don't move
             newXOrigin = CGRectGetMinX(self.frame);
+            bMove = NO;
         }
 
         // Check to make sure the view is still vertically within the caging area
@@ -141,15 +133,25 @@
            newYOrigin + CGRectGetHeight(self.frame) >= cagingAreaBottomSide) {
             // Don't move
             newYOrigin = CGRectGetMinY(self.frame);
+            bMove = NO;
         }
     }
 
+    if (sender.state == UIGestureRecognizerStateChanged && self.draggingMovedBlock) {
+        self.draggingMovedBlock(CGPointMake(newXOrigin, newYOrigin));
+    }
+    
+    if (sender.state == UIGestureRecognizerStateEnded && self.draggingEndedBlock) {
+        self.draggingEndedBlock(CGPointMake(newXOrigin, newYOrigin));
+    }
+    
     self.frame = CGRectMake(newXOrigin,
                             newYOrigin,
                             CGRectGetWidth(self.frame),
                             CGRectGetHeight(self.frame));
 
     [sender setTranslation:(CGPoint){0, 0} inView:[self superview]];
+    
 }
 
 - (void)adjustAnchorPointForGestureRecognizer:(UIGestureRecognizer *)gestureRecognizer {
@@ -170,7 +172,7 @@
 
 - (void)enableDragging {
     self.panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
-    self.panGesture.maximumNumberOfTouches = 1;
+//    self.panGesture.maximumNumberOfTouches = 1;
     self.panGesture.minimumNumberOfTouches = 1;
     self.panGesture.cancelsTouchesInView = NO;
     self.handle = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
